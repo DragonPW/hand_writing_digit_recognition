@@ -7,10 +7,8 @@
 clear;
 % clc;
 close all;
-%% key parameters
-training_N = 1000;
 
-%%
+%% read training data from files
 
 fid_label=fopen('train-labels.idx1-ubyte');
 fid_image=fopen('train-images.idx3-ubyte');
@@ -19,6 +17,7 @@ fread(fid_image,16); % skip the file head
 data = fread(fid_label,4);
 total_number = data(1)*256*256*256+data(2)*256*256+data(3)*256+data(4); % total number of data in the file
 % training_N = total_number;
+training_N = 1000;
 IMAGE_SIZE = 28;
 training_label = fread(fid_label,training_N)';
 image_data = fread(fid_image,training_N*IMAGE_SIZE*IMAGE_SIZE);
@@ -32,19 +31,8 @@ fclose(fid_image);
 %     imshow(training_image(:,:,i)');
 %     xlabel(training_label(i));
 % end
-%%  group the images by label value
 
-%%  training
-X = reshape(training_image,IMAGE_SIZE*IMAGE_SIZE,[]);
-SVMModel = cell(10,1);
-for j=1:10
-    y = training_label==(j-1);
-    SVMModels{j} = fitcsvm(X',y','Standardize',false,'KernelFunction','polynomial',...
-    'PolynomialOrder',5,'KernelScale','auto');
-end
-
-%% run for testing data
-% read testing data
+%% read testing data from files
 fid_label=fopen('t10k-labels.idx1-ubyte');
 fid_image=fopen('t10k-images.idx3-ubyte');
 fread(fid_label,4); % skip the file head
@@ -59,20 +47,15 @@ testing_image = reshape(image_data,IMAGE_SIZE,IMAGE_SIZE,[]);
 fclose(fid_label);
 fclose(fid_image);
 
-%% process testing image
-Xtest = reshape(testing_image,IMAGE_SIZE*IMAGE_SIZE,[])';
+%%  training and classifying
+% input: training_image,training_label,testing_image,
+% output: classifier_output 
 
-Scores = zeros(testing_N,10);
+training_testing_SVM_polynomial
 
-for j = 1:10
-    [~,score] = predict(SVMModels{j},Xtest);
-    Scores(:,j) = score(:,2); % Second column contains positive-class scores
-end
-[~,maxScore] = max(Scores,[],2);
-result = maxScore'-1;
 
 %% compare the result
-err = testing_label==result;
+err = testing_label==classifier_output;
 misMatch = testing_N-sum(err);
 error_rate = misMatch/testing_N;
 display(['training size: ' num2str(training_N)]);
@@ -84,7 +67,7 @@ figure(1)
 for i=1:20
     subplot(4,5,i);
     imshow(testing_image(:,:,i)');
-    xlabel([num2str(testing_label(i)) '->' num2str(result(i))]);
+    xlabel([num2str(testing_label(i)) '->' num2str(classifier_output(i))]);
 end
 
 %%  performance
