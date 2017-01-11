@@ -2,7 +2,7 @@
 
 %%  training
 X = reshape(training_image,IMAGE_SIZE*IMAGE_SIZE,[]);
-SVMModel = cell(10,1);
+SVMModels = cell(10,1);
 for j=1:10
     y = training_label==(j-1);
     SVMModels{j} = fitcsvm(X',y','Standardize',false,'KernelFunction','polynomial',...

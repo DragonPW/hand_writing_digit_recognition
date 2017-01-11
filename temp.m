@@ -1,0 +1,1 @@
+ [xxx,yyy]=predict(SVMModels{1},Xtest(1,:))
